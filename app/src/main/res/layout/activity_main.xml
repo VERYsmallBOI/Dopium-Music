@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity"
-    android:background="?android:colorBackground">
+    android:background="@drawable/gradeint">
 
     <!-- Main content with AppBar -->
 
@@ -23,7 +23,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@drawable/gradeint"
+
             android:theme="@style/ThemeOverlay.MaterialComponents.ActionBar"
             app:title="Music Player"
             app:titleTextColor="#FFFFFF" />

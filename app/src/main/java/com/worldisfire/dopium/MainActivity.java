@@ -116,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
 
         navigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
-            if (id == R.id.nav_home) {
+            if (id == R.id.shuffle) {
                 isShuffleEnabled = !isShuffleEnabled;  // Toggle shuffle
                 String msg = isShuffleEnabled ? "Shuffle ON" : "Shuffle OFF";
                 Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
@@ -132,6 +132,9 @@ public class MainActivity extends AppCompatActivity {
 
     /** Initialize UI references **/
     private void initUI() {
+        currentTime = findViewById(R.id.currentTime);
+        totalTime = findViewById(R.id.totalTime);
+
         expSongList = findViewById(R.id.expSongList);
         playPauseBtn = findViewById(R.id.playPauseBtn);
         songSeekBar = findViewById(R.id.songSeekBar);
@@ -139,25 +142,28 @@ public class MainActivity extends AppCompatActivity {
         nextPlayingTitle = findViewById(R.id.nextPlayingTitle);
 
     }
-//helper for next song
-private String getNextSongTitle() {
-    if (currentGroupPosition == -1 || currentChildPosition == -1) return "";
+    private TextView currentTime;
+    private TextView totalTime;
 
-    List<Song> currentFolderSongs = songMap.get(folderList.get(currentGroupPosition));
-    int nextPosition;
+    //helper for next song
+    private String getNextSongTitle() {
+        if (currentGroupPosition == -1 || currentChildPosition == -1) return "";
 
-    if (isShuffleEnabled) {
-        nextPosition = (int)(Math.random() * currentFolderSongs.size());
-    } else {
-        nextPosition = currentChildPosition + 1;
+        List<Song> currentFolderSongs = songMap.get(folderList.get(currentGroupPosition));
+        int nextPosition;
+
+        if (isShuffleEnabled) {
+            nextPosition = (int)(Math.random() * currentFolderSongs.size());
+        } else {
+            nextPosition = currentChildPosition + 1;
+        }
+
+        if (nextPosition < currentFolderSongs.size()) {
+            return currentFolderSongs.get(nextPosition).title;
+        } else {
+            return "";  // No next song
+        }
     }
-
-    if (nextPosition < currentFolderSongs.size()) {
-        return currentFolderSongs.get(nextPosition).title;
-    } else {
-        return "";  // No next song
-    }
-}
 
     /** Initialize ExoPlayer **/
     private void initPlayer() {
@@ -332,17 +338,23 @@ private String getNextSongTitle() {
         exoPlayer.clearMediaItems();
         exoPlayer.addMediaItem(MediaItem.fromUri(Uri.parse(path)));
         exoPlayer.prepare();
-       //chnged for shuffle
+        //chnged for shuffle
         playQueue.clear();
         currentIndex=-1;
         isShuffle=false;
         exoPlayer.play();
 
+
         songSeekBar.setValueFrom(0);
         songSeekBar.setValueTo(durationMs);
         songSeekBar.setValue(0);
 
+        // Set total time label
+        totalTime.setText(formatTime(durationMs));
+        currentTime.setText("0:00");
+
         startSeekBarUpdate();
+
 
     }
 
@@ -352,12 +364,21 @@ private String getNextSongTitle() {
             @Override
             public void run() {
                 if (exoPlayer != null && exoPlayer.isPlaying()) {
-                    songSeekBar.setValue(exoPlayer.getCurrentPosition());
+                    long currentPos = exoPlayer.getCurrentPosition();
+                    songSeekBar.setValue(currentPos);
+                    currentTime.setText(formatTime(currentPos));
                 }
-                seekHandler.postDelayed(this, 50);
+                seekHandler.postDelayed(this, 50); // update every 0.5s
             }
         }, 0);
     }
+    private String formatTime(long millis) {
+        int totalSeconds = (int) (millis / 1000);
+        int minutes = totalSeconds / 60;
+        int seconds = totalSeconds % 60;
+        return String.format("%d:%02d", minutes, seconds);
+    }
+
 
     /** Release player resources **/
     @Override
