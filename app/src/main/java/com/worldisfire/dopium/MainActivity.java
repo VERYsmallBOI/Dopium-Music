@@ -42,6 +42,8 @@ import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
+    //shuffle toggleer
+    private boolean isShuffleEnabled = false;
 
     /** Data model for songs **/
     private static class Song {
@@ -115,14 +117,18 @@ public class MainActivity extends AppCompatActivity {
         navigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_home) {
-                Toast.makeText(this, "Home clicked", Toast.LENGTH_SHORT).show();
+                isShuffleEnabled = !isShuffleEnabled;  // Toggle shuffle
+                String msg = isShuffleEnabled ? "Shuffle ON" : "Shuffle OFF";
+                Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
             } else if (id == R.id.nav_slideshow) {
                 Toast.makeText(this, "Slideshow clicked", Toast.LENGTH_SHORT).show();
             }
             drawer.closeDrawers();
             return true;
         });
+
     }
+    private TextView nextPlayingTitle;
 
     /** Initialize UI references **/
     private void initUI() {
@@ -130,7 +136,28 @@ public class MainActivity extends AppCompatActivity {
         playPauseBtn = findViewById(R.id.playPauseBtn);
         songSeekBar = findViewById(R.id.songSeekBar);
         nowPlayingTitle = findViewById(R.id.nowPlayingTitle);
+        nextPlayingTitle = findViewById(R.id.nextPlayingTitle);
+
     }
+//helper for next song
+private String getNextSongTitle() {
+    if (currentGroupPosition == -1 || currentChildPosition == -1) return "";
+
+    List<Song> currentFolderSongs = songMap.get(folderList.get(currentGroupPosition));
+    int nextPosition;
+
+    if (isShuffleEnabled) {
+        nextPosition = (int)(Math.random() * currentFolderSongs.size());
+    } else {
+        nextPosition = currentChildPosition + 1;
+    }
+
+    if (nextPosition < currentFolderSongs.size()) {
+        return currentFolderSongs.get(nextPosition).title;
+    } else {
+        return "";  // No next song
+    }
+}
 
     /** Initialize ExoPlayer **/
     private void initPlayer() {
@@ -151,13 +178,20 @@ public class MainActivity extends AppCompatActivity {
         if (currentGroupPosition == -1 || currentChildPosition == -1) return;
 
         List<Song> currentFolderSongs = songMap.get(folderList.get(currentGroupPosition));
-        int nextPosition = currentChildPosition + 1;
+        int nextPosition ;
+        if (isShuffleEnabled) {
+            nextPosition = (int) (Math.random() * currentFolderSongs.size());
+        } else {
+            nextPosition = currentChildPosition + 1;
+        }
 
         if (nextPosition < currentFolderSongs.size()) {
             currentChildPosition = nextPosition;
             Song nextSong = currentFolderSongs.get(nextPosition);
             nowPlayingTitle.setText(nextSong.title);
             playSong(nextSong.path, nextSong.durationMs);
+            nowPlayingTitle.setText(nextSong.title);
+            nextPlayingTitle.setText("Next: " + getNextSongTitle());
 
             // Also update UI to highlight new song if needed
         } else {
@@ -264,9 +298,12 @@ public class MainActivity extends AppCompatActivity {
             currentGroupPosition = groupPosition;
             currentChildPosition = childPosition;
 
+
             Song song = songMap.get(folderList.get(groupPosition)).get(childPosition);
             nowPlayingTitle.setText(song.title);
             playSong(song.path, song.durationMs);
+            nowPlayingTitle.setText(song.title);
+            nextPlayingTitle.setText("Next: " + getNextSongTitle());
             return true;
         });
 
@@ -285,6 +322,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+    private List<String> playQueue = new ArrayList<>(); // List of song paths
+    private int currentIndex = -1;
+    private boolean isShuffle = false;
 
     /** Play a single song via ExoPlayer **/
     private void playSong(String path, long durationMs) {
@@ -292,6 +332,10 @@ public class MainActivity extends AppCompatActivity {
         exoPlayer.clearMediaItems();
         exoPlayer.addMediaItem(MediaItem.fromUri(Uri.parse(path)));
         exoPlayer.prepare();
+       //chnged for shuffle
+        playQueue.clear();
+        currentIndex=-1;
+        isShuffle=false;
         exoPlayer.play();
 
         songSeekBar.setValueFrom(0);
@@ -299,6 +343,7 @@ public class MainActivity extends AppCompatActivity {
         songSeekBar.setValue(0);
 
         startSeekBarUpdate();
+
     }
 
     /** Update seek bar every 50ms **/
