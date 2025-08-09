@@ -132,6 +132,9 @@ public class MainActivity extends AppCompatActivity {
 
     /** Initialize UI references **/
     private void initUI() {
+        currentTime = findViewById(R.id.currentTime);
+        totalTime = findViewById(R.id.totalTime);
+
         expSongList = findViewById(R.id.expSongList);
         playPauseBtn = findViewById(R.id.playPauseBtn);
         songSeekBar = findViewById(R.id.songSeekBar);
@@ -139,7 +142,10 @@ public class MainActivity extends AppCompatActivity {
         nextPlayingTitle = findViewById(R.id.nextPlayingTitle);
 
     }
-//helper for next song
+    private TextView currentTime;
+    private TextView totalTime;
+
+    //helper for next song
 private String getNextSongTitle() {
     if (currentGroupPosition == -1 || currentChildPosition == -1) return "";
 
@@ -338,11 +344,17 @@ private String getNextSongTitle() {
         isShuffle=false;
         exoPlayer.play();
 
-        songSeekBar.setValueFrom(0);
-        songSeekBar.setValueTo(durationMs);
-        songSeekBar.setValue(0);
 
-        startSeekBarUpdate();
+            songSeekBar.setValueFrom(0);
+            songSeekBar.setValueTo(durationMs);
+            songSeekBar.setValue(0);
+
+            // Set total time label
+            totalTime.setText(formatTime(durationMs));
+            currentTime.setText("0:00");
+
+            startSeekBarUpdate();
+
 
     }
 
@@ -352,12 +364,21 @@ private String getNextSongTitle() {
             @Override
             public void run() {
                 if (exoPlayer != null && exoPlayer.isPlaying()) {
-                    songSeekBar.setValue(exoPlayer.getCurrentPosition());
+                    long currentPos = exoPlayer.getCurrentPosition();
+                    songSeekBar.setValue(currentPos);
+                    currentTime.setText(formatTime(currentPos));
                 }
-                seekHandler.postDelayed(this, 50);
+                seekHandler.postDelayed(this, 500); // update every 0.5s
             }
         }, 0);
     }
+    private String formatTime(long millis) {
+        int totalSeconds = (int) (millis / 1000);
+        int minutes = totalSeconds / 60;
+        int seconds = totalSeconds % 60;
+        return String.format("%d:%02d", minutes, seconds);
+    }
+
 
     /** Release player resources **/
     @Override

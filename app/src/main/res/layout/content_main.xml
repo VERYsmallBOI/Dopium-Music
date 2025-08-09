@@ -40,22 +40,57 @@
             android:text="Next: "
             android:textAppearance="?attr/textAppearanceSubtitle2"
             android:paddingTop="4dp"/>
-
-        <com.google.android.material.slider.Slider
-            android:id="@+id/songSeekBar"
+        <!-- Time + SeekBar Row -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:value="0"
-            android:valueFrom="0"
-            android:valueTo="100"
-            app:thumbColor="@color/purple_500"
-            app:trackColorActive="@color/purple_200"
-            app:trackColorInactive="@color/purple_700" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp">
+
+            <TextView
+                android:id="@+id/currentTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0:00"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:layout_marginEnd="8dp" />
+
+            <com.google.android.material.slider.Slider
+                android:id="@+id/songSeekBar"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:value="0"
+                android:valueFrom="0"
+                android:valueTo="100"
+                app:thumbColor="@color/purple_500"
+                app:trackColorActive="@color/purple_200"
+                app:trackColorInactive="@color/purple_700" />
+
+            <TextView
+                android:id="@+id/totalTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0:00"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:layout_marginStart="8dp" />
+        </LinearLayout>
+
+
+
 
         <Button
             android:id="@+id/playPauseBtn"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center"
+            android:weightSum="0.5"
+
             android:text="Play/Pause" />
+
     </LinearLayout>
 </LinearLayout>
